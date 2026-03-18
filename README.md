@@ -1,6 +1,6 @@
 # notebook-launcher
 
-A standalone desktop launcher for **Jupyter** and **marimo** notebooks (and any `.py` script with [PEP 723](https://peps.python.org/pep-0723/) inline metadata) — double-click to run any `.ipynb` or `.py` file that has inline dependencies, no Python installation required.
+A standalone desktop launcher for **Jupyter** and **marimo** notebooks — double-click to run any `.ipynb` or `.py` notebook that has inline dependencies, no Python installation required.
 
 Notebooks must declare their dependencies using the [PEP 723](https://peps.python.org/pep-0723/) inline script metadata format. The launcher uses [juv](https://github.com/manzt/juv) + [uv](https://docs.astral.sh/uv/) for `.ipynb` files and [marimo](https://marimo.io/) + [uv](https://docs.astral.sh/uv/) for `.py` files to read those dependencies and create an isolated environment automatically.
 
