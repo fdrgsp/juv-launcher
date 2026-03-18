@@ -55,7 +55,7 @@ func main() {
 	// Choose the right command based on file extension
 	runCmd := "uvx juv run"
 	if strings.HasSuffix(notebook, ".py") {
-		runCmd = "uvx marimo edit"
+		runCmd = "uvx marimo edit --sandbox"
 	}
 
 	// Bootstrap uv if needed, then run

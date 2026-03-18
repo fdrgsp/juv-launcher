@@ -1,6 +1,6 @@
 #!/bin/bash
 # macOS .app launcher — opens a file picker for .ipynb/.py notebook files,
-# then runs with uvx juv run (Jupyter) or uvx marimo edit (marimo).
+# then runs with uvx juv run (Jupyter) or uvx marimo edit --sandbox (marimo).
 
 APP_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
 
@@ -39,7 +39,7 @@ NOTEBOOK_NAME="$(basename "$NOTEBOOK")"
 # Choose the right command based on file extension
 case "$NOTEBOOK_NAME" in
   *.ipynb) RUN_CMD="uvx juv run" ;;
-  *.py)    RUN_CMD="uvx marimo edit" ;;
+  *.py)    RUN_CMD="uvx marimo edit --sandbox" ;;
 esac
 
 # Write a temp runner script to avoid escaping issues with osascript
