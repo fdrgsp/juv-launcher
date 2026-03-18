@@ -1,18 +1,19 @@
 #!/bin/bash
-# macOS .app launcher — opens a file picker for .ipynb files, then runs with uvx juv run.
+# macOS .app launcher — opens a file picker for .ipynb/.py notebook files,
+# then runs with uvx juv run (Jupyter) or uvx marimo edit (marimo).
 
 APP_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
 
 # Check if a notebook exists next to the .app (skip picker if so)
 NOTEBOOK=""
-for f in "$APP_DIR"/*.ipynb; do
+for f in "$APP_DIR"/*.ipynb "$APP_DIR"/*.py; do
   [ -f "$f" ] && NOTEBOOK="$f" && break
 done
 
 if [ -z "$NOTEBOOK" ]; then
-  # Show file picker for .ipynb files
+  # Show file picker for .ipynb and .py files
   NOTEBOOK=$(osascript -e 'try
-    set theFile to choose file with prompt "Select a Jupyter notebook (.ipynb):" of type {"public.item"} default location (path to home folder)
+    set theFile to choose file with prompt "Select a notebook (.ipynb or .py):" of type {"public.item"} default location (path to home folder)
     return POSIX path of theFile
   on error
     return ""
@@ -22,11 +23,11 @@ if [ -z "$NOTEBOOK" ]; then
     exit 0
   fi
 
-  # Verify it's a .ipynb file
+  # Verify it's a supported file type
   case "$NOTEBOOK" in
-    *.ipynb) ;;
+    *.ipynb|*.py) ;;
     *)
-      osascript -e 'display alert "Error" message "Please select a .ipynb file."'
+      osascript -e 'display alert "Error" message "Please select a .ipynb or .py file."'
       exit 1
       ;;
   esac
@@ -35,8 +36,14 @@ fi
 NOTEBOOK_DIR="$(dirname "$NOTEBOOK")"
 NOTEBOOK_NAME="$(basename "$NOTEBOOK")"
 
+# Choose the right command based on file extension
+case "$NOTEBOOK_NAME" in
+  *.ipynb) RUN_CMD="uvx juv run" ;;
+  *.py)    RUN_CMD="uvx marimo edit" ;;
+esac
+
 # Write a temp runner script to avoid escaping issues with osascript
-RUNNER=$(mktemp /tmp/juv-runner.XXXXXX)
+RUNNER=$(mktemp /tmp/notebook-launcher-runner.XXXXXX)
 cat > "$RUNNER" << SCRIPT
 #!/bin/bash
 export PATH="\$HOME/.local/bin:\$PATH"
@@ -47,7 +54,7 @@ if ! command -v uv >/dev/null 2>&1; then
 fi
 cd "$NOTEBOOK_DIR"
 echo "Launching $NOTEBOOK_NAME ..."
-uvx juv run "$NOTEBOOK_NAME"
+$RUN_CMD "$NOTEBOOK_NAME"
 rm -f "$RUNNER"
 SCRIPT
 chmod +x "$RUNNER"

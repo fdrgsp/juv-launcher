@@ -1,31 +1,33 @@
-# juv-launcher
+# notebook-launcher
 
-A standalone desktop launcher for **Jupyter notebooks** — double-click to run any `.ipynb` file that has inline dependencies, no Python installation required.
+A standalone desktop launcher for **Jupyter** and **marimo** notebooks (and any `.py` script with [PEP 723](https://peps.python.org/pep-0723/) inline metadata) — double-click to run any `.ipynb` or `.py` file that has inline dependencies, no Python installation required.
 
-Notebooks must declare their dependencies using the [PEP 723](https://peps.python.org/pep-0723/) inline script metadata format. The launcher uses [juv](https://github.com/manzt/juv) + [uv](https://docs.astral.sh/uv/) to read those dependencies and create an isolated environment automatically.
+Notebooks must declare their dependencies using the [PEP 723](https://peps.python.org/pep-0723/) inline script metadata format. The launcher uses [juv](https://github.com/manzt/juv) + [uv](https://docs.astral.sh/uv/) for `.ipynb` files and [marimo](https://marimo.io/) + [uv](https://docs.astral.sh/uv/) for `.py` files to read those dependencies and create an isolated environment automatically.
 
 ## Download
 
 | macOS | Windows |
 |---|---|
-| [Download .app](https://github.com/fdrgsp/juv-launcher/releases/download/latest/juv-launcher-latest-mac.zip) | [Download .exe](https://github.com/fdrgsp/juv-launcher/releases/download/latest/juv-launcher-latest-windows.zip) |
+| [Download .app](https://github.com/fdrgsp/notebook-launcher/releases/download/latest/notebook-launcher-latest-mac.zip) | [Download .exe](https://github.com/fdrgsp/notebook-launcher/releases/download/latest/notebook-launcher-latest-windows.zip) |
 
 ## How it works
 
 1. Download and unzip the file for your platform
 2. Double-click the executable (`.app` on macOS, `.exe` on Windows)
-3. A file picker appears — select a `.ipynb` file
+3. A file picker appears — select a `.ipynb` or `.py` file
 4. The notebook opens in your browser
 
-**Shortcut:** place the `.app`/`.exe` next to a `.ipynb` file and it will run that notebook directly, skipping the file picker.
+**Shortcut:** place the `.app`/`.exe` next to a `.ipynb` or `.py` file and it will run that notebook directly, skipping the file picker.
 
 **First run only:** `uv` and all packages are downloaded and cached automatically. Subsequent runs are fast.
 
 ## Preparing your notebook
 
-The launcher runs notebooks using `uvx juv run`, which requires each notebook to declare its dependencies inline using [PEP 723](https://peps.python.org/pep-0723/) script metadata.
+### Jupyter notebooks (`.ipynb`)
 
-### Option 1: Use `juv add` (recommended)
+The launcher runs `.ipynb` files using `uvx juv run`, which requires each notebook to declare its dependencies inline using [PEP 723](https://peps.python.org/pep-0723/) script metadata.
+
+#### Option 1: Use `juv add` (recommended)
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then add dependencies to your notebook:
 
@@ -39,7 +41,7 @@ This writes a hidden `# /// script` cell into the notebook. You can verify it wo
 uvx juv run my_notebook.ipynb
 ```
 
-### Option 2: Add the metadata manually
+#### Option 2: Add the metadata manually
 
 Add a code cell at the top of your notebook with:
 
@@ -55,6 +57,27 @@ Add a code cell at the top of your notebook with:
 ```
 
 This cell tells `juv` which packages to install in the isolated environment.
+
+### marimo notebooks (`.py`)
+
+The launcher runs `.py` files using `uvx marimo edit`. Your marimo notebook must include [PEP 723](https://peps.python.org/pep-0723/) inline script metadata at the top:
+
+```python
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#   "marimo",
+#   "numpy>=1.26",
+#   "pandas>=2.0",
+# ]
+# ///
+```
+
+You can verify it works locally:
+
+```bash
+uvx marimo edit my_notebook.py
+```
 
 ## Platform notes
 
