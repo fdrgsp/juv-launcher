@@ -117,3 +117,6 @@ uv run my_script.py
 
 - An internet connection on first run (to fetch `uv` and packages — cached locally after that)
 - Nothing else — no Python, no conda, no pip
+
+> [!IMPORTANT]
+> If `uv` is not already installed, the launcher will download and install it automatically on first run — no permission prompt will appear. On Windows, the launcher also silently sets the PowerShell execution policy to `RemoteSigned` for the current user to ensure the install script can run. On managed or enterprise machines where Group Policy enforces the execution policy, this may be blocked — in that case, an administrator will need to allow PowerShell scripts to run.

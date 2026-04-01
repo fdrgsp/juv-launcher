@@ -50,6 +50,7 @@ func main() {
 	// Bootstrap uv if needed, then run
 	tmpDir := os.TempDir()
 	script := fmt.Sprintf(`@echo off
+powershell -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force" >nul 2>&1
 where uv >nul 2>&1 || (
     echo Installing uv...
     powershell -ExecutionPolicy Bypass -c "irm https://astral.sh/uv/install.ps1 | iex"
