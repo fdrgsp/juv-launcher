@@ -1,4 +1,6 @@
-# <img src="icon.png" width="80" alt="launcher723 icon" style="vertical-align:middle"/> launcher723
+<img src="icon.png" width="100" alt="launcher723 icon"/>
+
+# launcher723
 
 A standalone desktop launcher for **Jupyter** and **marimo** notebooks, and plain Python scripts — double-click to run any `.ipynb` or `.py` file that has inline dependencies, no Python installation required.
 
