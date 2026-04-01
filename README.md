@@ -8,7 +8,7 @@ Files must declare their dependencies using the [PEP 723](https://peps.python.or
 
 | macOS                                                                                                              | Windows                                                                                                                  |
 |--------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
-| [Download .app](https://github.com/fdrgsp/launcher723/releases/download/latest/launcher723-latest-mac.zip)         | [Download .exe](https://github.com/fdrgsp/launcher723/releases/download/latest/launcher723-latest-windows.zip)           |
+| 🚀 [Download .app](https://github.com/fdrgsp/launcher723/releases/download/latest/launcher723-latest-mac.zip)      | 🚀 [Download .exe](https://github.com/fdrgsp/launcher723/releases/download/latest/launcher723-latest-windows.zip)        |
 
 ## How it works
 
