@@ -4,11 +4,13 @@
 
 APP_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
 
-# Check if a notebook exists next to the .app (skip picker if so)
+# Check if exactly one notebook exists next to the .app (skip picker if so)
 NOTEBOOK=""
+NOTEBOOK_COUNT=0
 for f in "$APP_DIR"/*.ipynb "$APP_DIR"/*.py; do
-  [ -f "$f" ] && NOTEBOOK="$f" && break
+  [ -f "$f" ] && NOTEBOOK_COUNT=$((NOTEBOOK_COUNT + 1)) && NOTEBOOK="$f"
 done
+[ "$NOTEBOOK_COUNT" -ne 1 ] && NOTEBOOK=""
 
 if [ -z "$NOTEBOOK" ]; then
   # Show file picker for .ipynb and .py files
@@ -36,10 +38,16 @@ fi
 NOTEBOOK_DIR="$(dirname "$NOTEBOOK")"
 NOTEBOOK_NAME="$(basename "$NOTEBOOK")"
 
-# Choose the right command based on file extension
+# Choose the right command based on file extension (and marimo dependency for .py)
 case "$NOTEBOOK_NAME" in
   *.ipynb) RUN_CMD="uvx juv run" ;;
-  *.py)    RUN_CMD="uvx marimo edit --sandbox" ;;
+  *.py)
+    if grep -q '"marimo' "$NOTEBOOK"; then
+      RUN_CMD="uvx marimo edit --sandbox"
+    else
+      RUN_CMD="uv run"
+    fi
+    ;;
 esac
 
 # Write a temp runner script to avoid escaping issues with osascript

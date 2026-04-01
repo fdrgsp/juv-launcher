@@ -49,16 +49,16 @@ jobs:
           mkdir -p dist
 
           # macOS (.app bundle)
-          TARGET="dist/notebook-launcher-${TAG}-mac/notebook-launcher.app/Contents"
+          TARGET="dist/launcher723-${TAG}-mac/launcher723.app/Contents"
           mkdir -p "$TARGET/MacOS" "$TARGET/Resources"
           cp macos/Info.plist "$TARGET/Info.plist"
           cp macos/launch "$TARGET/MacOS/launch"
           cp macos/icon.icns "$TARGET/Resources/icon.icns"
-          cd dist && zip -r "notebook-launcher-${TAG}-mac.zip" "notebook-launcher-${TAG}-mac/" && cd ..
+          cd dist && zip -r "launcher723-${TAG}-mac.zip" "launcher723-${TAG}-mac/" && cd ..
 
           # Windows (.exe)
-          cd windows && GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -o "../dist/notebook-launcher-${TAG}-windows/notebook-launcher.exe" . && cd ..
-          cd dist && zip -r "notebook-launcher-${TAG}-windows.zip" "notebook-launcher-${TAG}-windows/" && cd ..
+          cd windows && GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -o "../dist/launcher723-${TAG}-windows/launcher723.exe" . && cd ..
+          cd dist && zip -r "launcher723-${TAG}-windows.zip" "launcher723-${TAG}-windows/" && cd ..
 
       - name: Publish latest pre-release (main push)
         if: github.ref_type == 'branch'

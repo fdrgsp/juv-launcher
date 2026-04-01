@@ -16,14 +16,17 @@ func main() {
 	}
 	exeDir := filepath.Dir(exe)
 
-	// Check if a notebook exists next to the .exe
+	// Check if exactly one notebook exists next to the .exe (skip picker if so)
 	notebook := ""
 	entries, _ := os.ReadDir(exeDir)
+	var matches []string
 	for _, e := range entries {
 		if strings.HasSuffix(e.Name(), ".ipynb") || strings.HasSuffix(e.Name(), ".py") {
-			notebook = e.Name()
-			break
+			matches = append(matches, e.Name())
 		}
+	}
+	if len(matches) == 1 {
+		notebook = matches[0]
 	}
 
 	notebookDir := exeDir
@@ -52,10 +55,15 @@ func main() {
 		notebook = filepath.Base(selected)
 	}
 
-	// Choose the right command based on file extension
+	// Choose the right command based on file extension (and marimo dependency for .py)
 	runCmd := "uvx juv run"
 	if strings.HasSuffix(notebook, ".py") {
-		runCmd = "uvx marimo edit --sandbox"
+		content, _ := os.ReadFile(filepath.Join(notebookDir, notebook))
+		if strings.Contains(string(content), `"marimo`) {
+			runCmd = "uvx marimo edit --sandbox"
+		} else {
+			runCmd = "uv run"
+		}
 	}
 
 	// Bootstrap uv if needed, then run
