@@ -65,3 +65,11 @@ disallow_any_generics = false
 disallow_subclassing_any = false
 show_error_codes = true
 pretty = true
+
+[[tool.mypy.overrides]]
+module = [
+    "test_macos_launcher",
+    "test_windows_launcher",
+]
+disallow_untyped_defs = false
+disallow_untyped_calls = false
