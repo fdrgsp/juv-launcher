@@ -23,10 +23,16 @@ def _call(func: str, *args: str) -> str:
 select_runner_cases = [
     ("ipynb uses juv", "notebook.ipynb", "", "uvx juv run"),
     (
-        "py with marimo dep",
+        "py with marimo dep edit mode",
         "nb.py",
-        '# dependencies = [\n#   "marimo",\n# ]',
+        '# /// pyrunner\n# marimo_mode = "edit"\n# ///\n# dependencies = [\n#   "marimo",\n# ]',
         "uvx marimo edit --sandbox",
+    ),
+    (
+        "py with marimo dep run mode",
+        "nb.py",
+        '# /// pyrunner\n# marimo_mode = "run"\n# ///\n# dependencies = [\n#   "marimo",\n# ]',
+        "uvx marimo run --sandbox",
     ),
     (
         "py without marimo",
@@ -36,15 +42,15 @@ select_runner_cases = [
     ),
     ("py empty content", "script.py", "", "uv run"),
     (
-        "py with marimo version spec",
+        "py with marimo version spec edit mode",
         "nb.py",
-        '# dependencies = [\n#   "marimo>=0.1",\n# ]',
+        '# /// pyrunner\n# marimo_mode = "edit"\n# ///\n# dependencies = [\n#   "marimo>=0.1",\n# ]',
         "uvx marimo edit --sandbox",
     ),
     (
-        "py with single-quoted marimo",
+        "py with single-quoted marimo edit mode",
         "nb.py",
-        "# dependencies = [\n#   'marimo',\n# ]",
+        "# /// pyrunner\n# marimo_mode = \"edit\"\n# ///\n# dependencies = [\n#   'marimo',\n# ]",
         "uvx marimo edit --sandbox",
     ),
     (
@@ -61,4 +67,27 @@ def test_select_runner(tmp_path, desc, filename, content, expected):
     path = tmp_path / filename
     path.write_text(content)
     actual = _call("select_runner", str(path))
+    assert actual == expected
+
+
+# ── marimo_mode ────────────────────────────────────────────────────────────────
+
+marimo_mode_cases = [
+    ("no pyrunner block", '# dependencies = [\n#   "marimo",\n# ]', ""),
+    ("run mode", '# /// pyrunner\n# marimo_mode = "run"\n# ///\n', "run"),
+    ("edit mode", '# /// pyrunner\n# marimo_mode = "edit"\n# ///\n', "edit"),
+    ("block without marimo_mode", '# /// pyrunner\n# other_key = "value"\n# ///\n', ""),
+    (
+        "marimo_mode after other keys",
+        '# /// pyrunner\n# other = "x"\n# marimo_mode = "run"\n# ///\n',
+        "run",
+    ),
+]
+
+
+@pytest.mark.parametrize("desc,content,expected", marimo_mode_cases)
+def test_marimo_mode(tmp_path, desc, content, expected):
+    path = tmp_path / "nb.py"
+    path.write_text(content)
+    actual = _call("marimo_mode", str(path))
     assert actual == expected
