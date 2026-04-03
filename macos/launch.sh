@@ -24,8 +24,6 @@ marimo_mode() {
   done < "$file"
 }
 
-# Shows a dialog asking the user to choose run or edit mode for a marimo notebook.
-# Outputs "run", "edit", or "" on cancel.
 # Outputs the run command for the given notebook file path.
 select_runner() {
   local notebook="$1"

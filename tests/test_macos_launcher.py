@@ -25,13 +25,15 @@ select_runner_cases = [
     (
         "py with marimo dep edit mode",
         "nb.py",
-        '# /// script\n# dependencies = [\n#   "marimo",\n# ]\n#\n# [pyrunner]\n# marimo-mode = "edit"\n# ///\n',
+        '# /// script\n# dependencies = [\n#   "marimo",\n# ]\n#\n'
+        '# [pyrunner]\n# marimo-mode = "edit"\n# ///\n',
         "uvx marimo edit --sandbox",
     ),
     (
         "py with marimo dep run mode",
         "nb.py",
-        '# /// script\n# dependencies = [\n#   "marimo",\n# ]\n#\n# [pyrunner]\n# marimo-mode = "run"\n# ///\n',
+        '# /// script\n# dependencies = [\n#   "marimo",\n# ]\n#\n'
+        '# [pyrunner]\n# marimo-mode = "run"\n# ///\n',
         "uvx marimo run --sandbox",
     ),
     (
@@ -44,13 +46,15 @@ select_runner_cases = [
     (
         "py with marimo version spec edit mode",
         "nb.py",
-        '# /// script\n# dependencies = [\n#   "marimo>=0.1",\n# ]\n#\n# [pyrunner]\n# marimo-mode = "edit"\n# ///\n',
+        '# /// script\n# dependencies = [\n#   "marimo>=0.1",\n# ]\n#\n'
+        '# [pyrunner]\n# marimo-mode = "edit"\n# ///\n',
         "uvx marimo edit --sandbox",
     ),
     (
         "py with single-quoted marimo edit mode",
         "nb.py",
-        "# /// script\n# dependencies = [\n#   'marimo',\n# ]\n#\n# [pyrunner]\n# marimo-mode = \"edit\"\n# ///\n",
+        "# /// script\n# dependencies = [\n#   'marimo',\n# ]\n#\n"
+        '# [pyrunner]\n# marimo-mode = "edit"\n# ///\n',
         "uvx marimo edit --sandbox",
     ),
     (

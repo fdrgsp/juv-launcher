@@ -15,7 +15,7 @@ import (
 var marimoModeRe = regexp.MustCompile(`^#\s+marimo-mode\s*=\s*["']([a-z]+)["']`)
 
 // marimoMode reads the [pyrunner] section inside the # /// script block and
-// returns the marimo_mode value ("run", "edit", or "" if not set).
+// returns the marimo-mode value ("run", "edit", or "" if not set).
 func marimoMode(content string) string {
 	inBlock := false
 	inSection := false
@@ -58,8 +58,9 @@ func selectRunner(notebookPath string) string {
 		fmt.Fprintf(os.Stderr, "Warning: cannot read %s: %v\n", notebookPath, err)
 		return "uv run"
 	}
-	if isMarimo(string(content)) {
-		if marimoMode(string(content)) == "run" {
+	s := string(content)
+	if isMarimo(s) {
+		if marimoMode(s) == "run" {
 			return "uvx marimo run --sandbox"
 		}
 		return "uvx marimo edit --sandbox"
