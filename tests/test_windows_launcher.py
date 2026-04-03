@@ -45,6 +45,7 @@ def _go_test(go_available, run_filter):
         "py_with_marimo_version_spec_edit_mode",
         "py_with_single-quoted_marimo_edit_mode",
         "py_with_unrelated_marimo_mention_uses_uv_run",
+        "py_with_marimo_dep_no_pyrunner_section_defaults_to_edit",
     ],
 )
 def test_select_runner(go_available, case):
@@ -57,12 +58,16 @@ def test_select_runner(go_available, case):
 @pytest.mark.parametrize(
     "case",
     [
-        "no_pyrunner_block",
+        "no_script_block",
         "run_mode",
         "edit_mode",
-        "block_without_marimo_mode",
-        "marimo_mode_after_other_keys",
+        "single-quoted_run_mode",
+        "no_pyrunner_section",
+        "section_without_marimo-mode",
+        "marimo-mode_after_other_keys",
     ],
 )
 def test_marimo_mode(go_available, case):
     _go_test(go_available, f"TestMarimoMode/{case}")
+
+

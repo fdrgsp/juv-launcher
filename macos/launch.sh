@@ -5,13 +5,18 @@
 # Extracts marimo_mode from the # /// pyrunner block in a .py file.
 # Outputs "run", "edit", or "" if not specified.
 marimo_mode() {
-  local file="$1" in_block=0
+  local file="$1" in_block=0 in_section=0
+  local re=$'^#[[:space:]]+marimo-mode[[:space:]]*=[[:space:]]*["\']([a-z]+)["\']'
   while IFS= read -r line; do
     if [[ $in_block -eq 0 ]]; then
-      [[ "$line" == "# /// pyrunner" ]] && in_block=1
+      [[ "$line" == "# /// script" ]] && in_block=1
+    elif [[ $in_section -eq 0 ]]; then
+      [[ "$line" == "# ///" ]] && break
+      [[ "${line#\#}" =~ ^[[:space:]]*\[pyrunner\] ]] && in_section=1
     else
       [[ "$line" == "# ///" ]] && break
-      if [[ "$line" =~ ^#[[:space:]]+marimo_mode[[:space:]]*=[[:space:]]*\"([a-z]+)\" ]]; then
+      [[ "$line" =~ ^#[[:space:]]*\[ ]] && break
+      if [[ "$line" =~ $re ]]; then
         echo "${BASH_REMATCH[1]}"
         return
       fi
@@ -21,22 +26,6 @@ marimo_mode() {
 
 # Shows a dialog asking the user to choose run or edit mode for a marimo notebook.
 # Outputs "run", "edit", or "" on cancel.
-ask_marimo_mode() {
-  osascript 2>/dev/null << 'EOF'
-try
-  set msg to "Open marimo notebook in which mode?" & return & return & "  Run - read-only app, outputs and widgets only" & return & "  Edit - full editor, code cells visible and editable"
-  set theResult to button returned of (display dialog msg with title "PyRunner" buttons {"Cancel", "Run", "Edit"} default button "Edit")
-  if theResult is "Run" then
-    return "run"
-  else
-    return "edit"
-  end if
-on error
-  return ""
-end try
-EOF
-}
-
 # Outputs the run command for the given notebook file path.
 select_runner() {
   local notebook="$1"
@@ -47,16 +36,11 @@ select_runner() {
       # Anchored to quote + "marimo" + (quote or version specifier) to avoid
       # false positives on unrelated strings containing "marimo".
       if grep -qE "[\"']marimo[\"'><=~!]" "$notebook"; then
-        local mode
-        mode="$(marimo_mode "$notebook")"
-        if [[ -z "$mode" ]]; then
-          mode="$(ask_marimo_mode)"
+        if [[ "$(marimo_mode "$notebook")" == "run" ]]; then
+          echo "uvx marimo run --sandbox"
+        else
+          echo "uvx marimo edit --sandbox"
         fi
-        case "$mode" in
-          run)  echo "uvx marimo run --sandbox" ;;
-          edit) echo "uvx marimo edit --sandbox" ;;
-          *)    echo "" ;;
-        esac
       else
         echo "uv run"
       fi
@@ -90,10 +74,6 @@ _main() {
   NOTEBOOK_DIR="$(dirname "$NOTEBOOK")"
   NOTEBOOK_NAME="$(basename "$NOTEBOOK")"
   RUN_CMD="$(select_runner "$NOTEBOOK")"
-
-  if [ -z "$RUN_CMD" ]; then
-    exit 0
-  fi
 
   # Build a temp runner script.  Values are injected via printf '%q' (shell-
   # escaped) so that crafted filenames cannot break out of the script.

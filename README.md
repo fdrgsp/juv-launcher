@@ -2,7 +2,7 @@
 
 A standalone desktop launcher for **Jupyter** and **marimo** notebooks, and **plain Python scripts** — double-click to run any `.ipynb` or `.py` file that has inline dependencies, no Python installation required.
 
-Files must declare their dependencies using the [PEP 723](https://peps.python.org/pep-0723/) inline script metadata format. The launcher uses [juv](https://github.com/manzt/juv) + [uv](https://docs.astral.sh/uv/) for `.ipynb` files, [marimo](https://marimo.io/) + [uv](https://docs.astral.sh/uv/) for `.py` files that declare `marimo` as a dependency, and plain `uv run` for other `.py` scripts. For marimo notebooks, a dialog lets the user choose between **run mode** (read-only) and **edit mode** (full editor), unless the notebook developer has fixed the mode in the file.
+Files must declare their dependencies using the [PEP 723](https://peps.python.org/pep-0723/) inline script metadata format. The launcher uses [juv](https://github.com/manzt/juv) + [uv](https://docs.astral.sh/uv/) for `.ipynb` files, [marimo](https://marimo.io/) + [uv](https://docs.astral.sh/uv/) for `.py` files that declare `marimo` as a dependency, and plain `uv run` for other `.py` scripts.
 
 ## Download
 
@@ -15,13 +15,7 @@ Files must declare their dependencies using the [PEP 723](https://peps.python.or
 1. Download and unzip the file for your platform
 2. Double-click the executable (`.app` on macOS, `.exe` on Windows)
 3. A file picker appears — select a `.ipynb` or `.py` file
-4. **For marimo notebooks:** a dialog asks how to open the file:
-   - **Run** — read-only app mode; code is hidden and users interact with outputs and widgets only (`marimo run`)
-   - **Edit** — full notebook editor; code cells are visible and editable (`marimo edit`)
-5. The file opens in your browser (notebooks) or terminal (scripts)
-
-> [!NOTE]
-> If the notebook developer has set a fixed mode (see [Fixing the open mode](#fixing-the-open-mode)), the dialog is skipped and the file opens directly in that mode.
+4. The file opens in your browser (notebooks) or terminal (scripts)
 
 **First run only:** `uv` and all packages are downloaded and cached automatically. Subsequent runs are fast.
 
@@ -91,10 +85,12 @@ This cell tells `juv` which packages to install in the isolated environment.
 
 The launcher inspects each `.py` file for [PEP 723](https://peps.python.org/pep-0723/) inline script metadata and chooses the right runner automatically:
 
-- If `marimo` is listed as a dependency → asks how to open in a dialog (run or edit mode)
+- If `marimo` is listed as a dependency → opens in edit mode by default (or the mode fixed in the file)
 - Otherwise → runs with `uv run`
 
 #### marimo notebooks
+
+`marimo` must be listed as a dependency — this is how pyrunner detects that a `.py` file is a marimo notebook and opens it with `marimo` instead of `uv run`.
 
 ```python
 # /// script
@@ -117,22 +113,7 @@ uvx marimo run my_notebook.py
 
 #### Fixing the open mode
 
-By default pyrunner asks the user whether to open a marimo notebook in run or edit mode. If you want to ship a notebook that always opens in a specific mode — for example a dashboard that end users should never edit — add a `# /// pyrunner` block anywhere before the first non-comment line:
-
-```python
-# /// pyrunner
-# marimo_mode = "run"
-# ///
-```
-
-Accepted values:
-
-| Value | Effect |
-|-------|--------|
-| `"run"` | Always opens in read-only app mode (`marimo run`) — no dialog shown |
-| `"edit"` | Always opens in full editor mode (`marimo edit`) — no dialog shown |
-
-A complete marimo notebook file with both blocks looks like this:
+By default marimo notebooks open in edit mode. To pin a notebook to a specific mode — for example a read-only notebook — add a `[pyrunner]` section inside the `# /// script` block:
 
 ```python
 # /// script
@@ -141,12 +122,20 @@ A complete marimo notebook file with both blocks looks like this:
 #   "marimo",
 #   "numpy>=1.26",
 # ]
-# ///
-
-# /// pyrunner
-# marimo_mode = "run"
+#
+# [pyrunner]
+# marimo-mode = "run"  # or "edit" (default)
 # ///
 ```
+
+Accepted values:
+
+| Value    | Effect                                                           |
+|----------|------------------------------------------------------------------|
+| `"run"`  | Opens in read-only app mode (`marimo run`)                       |
+| `"edit"` | Opens in full editor mode (`marimo edit`) — this is the default  |
+
+`uv` ignores the `[pyrunner]` section when running the script — it only reads `requires-python`, `dependencies`, and `[tool.uv]`.
 
 #### Plain Python scripts
 
