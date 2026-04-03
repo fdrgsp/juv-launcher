@@ -21,6 +21,7 @@ repos:
     rev: v0.14.7
     hooks:
       - id: ruff-check
+        exclude: "examples/"
       - id: ruff-format
         exclude: "examples/"
 
