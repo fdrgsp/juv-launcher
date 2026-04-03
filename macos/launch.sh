@@ -1,6 +1,28 @@
 #!/bin/bash
 # macOS .app launcher — opens a file picker for .ipynb/.py files, then runs
-# with uvx juv run (Jupyter), uvx marimo edit --sandbox (marimo), or uv run (plain .py).
+# with uvx juv run (Jupyter), uvx marimo run/edit --sandbox (marimo), or uv run (plain .py).
+
+# Extracts marimo_mode from the # /// pyrunner block in a .py file.
+# Outputs "run", "edit", or "" if not specified.
+marimo_mode() {
+  local file="$1" in_block=0 in_section=0
+  local re=$'^#[[:space:]]+marimo-mode[[:space:]]*=[[:space:]]*["\']([a-z]+)["\']'
+  while IFS= read -r line; do
+    if [[ $in_block -eq 0 ]]; then
+      [[ "$line" == "# /// script" ]] && in_block=1
+    elif [[ $in_section -eq 0 ]]; then
+      [[ "$line" == "# ///" ]] && break
+      [[ "${line#\#}" =~ ^[[:space:]]*\[pyrunner\] ]] && in_section=1
+    else
+      [[ "$line" == "# ///" ]] && break
+      [[ "$line" =~ ^#[[:space:]]*\[ ]] && break
+      if [[ "$line" =~ $re ]]; then
+        echo "${BASH_REMATCH[1]}"
+        return
+      fi
+    fi
+  done < "$file"
+}
 
 # Outputs the run command for the given notebook file path.
 select_runner() {
@@ -12,7 +34,11 @@ select_runner() {
       # Anchored to quote + "marimo" + (quote or version specifier) to avoid
       # false positives on unrelated strings containing "marimo".
       if grep -qE "[\"']marimo[\"'><=~!]" "$notebook"; then
-        echo "uvx marimo edit --sandbox"
+        if [[ "$(marimo_mode "$notebook")" == "run" ]]; then
+          echo "uvx marimo run --sandbox"
+        else
+          echo "uvx marimo edit --sandbox"
+        fi
       else
         echo "uv run"
       fi

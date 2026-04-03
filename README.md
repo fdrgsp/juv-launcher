@@ -85,10 +85,12 @@ This cell tells `juv` which packages to install in the isolated environment.
 
 The launcher inspects each `.py` file for [PEP 723](https://peps.python.org/pep-0723/) inline script metadata and chooses the right runner automatically:
 
-- If `marimo` is listed as a dependency → runs with `uvx marimo edit --sandbox`
+- If `marimo` is listed as a dependency → opens in edit mode by default (or the mode fixed in the file)
 - Otherwise → runs with `uv run`
 
 #### marimo notebooks
+
+`marimo` must be listed as a dependency — this is how pyrunner detects that a `.py` file is a marimo notebook and opens it with `marimo` instead of `uv run`.
 
 ```python
 # /// script
@@ -105,7 +107,35 @@ You can verify it works locally:
 
 ```bash
 uvx marimo edit my_notebook.py
+# or in read-only mode:
+uvx marimo run my_notebook.py
 ```
+
+#### Fixing the open mode
+
+By default marimo notebooks open in edit mode. To pin a notebook to a specific mode — for example a read-only notebook — add a `[pyrunner]` section inside the `# /// script` block:
+
+```python
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#   "marimo",
+#   "numpy>=1.26",
+# ]
+#
+# [pyrunner]
+# marimo-mode = "run"  # or "edit" (default)
+# ///
+```
+
+Accepted values:
+
+| Value    | Effect                                                           |
+|----------|------------------------------------------------------------------|
+| `"run"`  | Opens in read-only app mode (`marimo run`)                       |
+| `"edit"` | Opens in full editor mode (`marimo edit`) — this is the default  |
+
+`uv` ignores the `[pyrunner]` section when running the script — it only reads `requires-python`, `dependencies`, and `[tool.uv]`.
 
 #### Plain Python scripts
 

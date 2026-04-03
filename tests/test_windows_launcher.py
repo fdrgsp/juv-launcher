@@ -38,11 +38,34 @@ def _go_test(go_available, run_filter):
     "case",
     [
         "ipynb_uses_juv",
-        "py_with_marimo_dep_uses_marimo",
+        "py_with_marimo_dep_edit_mode",
+        "py_with_marimo_dep_run_mode",
         "py_without_marimo_uses_uv_run",
         "py_with_empty_content_uses_uv_run",
-        "py_with_marimo_in_comment_string_uses_marimo",
+        "py_with_marimo_version_spec_edit_mode",
+        "py_with_single-quoted_marimo_edit_mode",
+        "py_with_unrelated_marimo_mention_uses_uv_run",
+        "py_with_marimo_dep_no_pyrunner_section_defaults_to_edit",
     ],
 )
 def test_select_runner(go_available, case):
     _go_test(go_available, f"TestSelectRunner/{case}")
+
+
+# ── TestMarimoMode ───────────────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        "no_script_block",
+        "run_mode",
+        "edit_mode",
+        "single-quoted_run_mode",
+        "no_pyrunner_section",
+        "section_without_marimo-mode",
+        "marimo-mode_after_other_keys",
+    ],
+)
+def test_marimo_mode(go_available, case):
+    _go_test(go_available, f"TestMarimoMode/{case}")

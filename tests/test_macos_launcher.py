@@ -23,10 +23,18 @@ def _call(func: str, *args: str) -> str:
 select_runner_cases = [
     ("ipynb uses juv", "notebook.ipynb", "", "uvx juv run"),
     (
-        "py with marimo dep",
+        "py with marimo dep edit mode",
         "nb.py",
-        '# dependencies = [\n#   "marimo",\n# ]',
+        '# /// script\n# dependencies = [\n#   "marimo",\n# ]\n#\n'
+        '# [pyrunner]\n# marimo-mode = "edit"\n# ///\n',
         "uvx marimo edit --sandbox",
+    ),
+    (
+        "py with marimo dep run mode",
+        "nb.py",
+        '# /// script\n# dependencies = [\n#   "marimo",\n# ]\n#\n'
+        '# [pyrunner]\n# marimo-mode = "run"\n# ///\n',
+        "uvx marimo run --sandbox",
     ),
     (
         "py without marimo",
@@ -36,15 +44,17 @@ select_runner_cases = [
     ),
     ("py empty content", "script.py", "", "uv run"),
     (
-        "py with marimo version spec",
+        "py with marimo version spec edit mode",
         "nb.py",
-        '# dependencies = [\n#   "marimo>=0.1",\n# ]',
+        '# /// script\n# dependencies = [\n#   "marimo>=0.1",\n# ]\n#\n'
+        '# [pyrunner]\n# marimo-mode = "edit"\n# ///\n',
         "uvx marimo edit --sandbox",
     ),
     (
-        "py with single-quoted marimo",
+        "py with single-quoted marimo edit mode",
         "nb.py",
-        "# dependencies = [\n#   'marimo',\n# ]",
+        "# /// script\n# dependencies = [\n#   'marimo',\n# ]\n#\n"
+        '# [pyrunner]\n# marimo-mode = "edit"\n# ///\n',
         "uvx marimo edit --sandbox",
     ),
     (
@@ -52,6 +62,12 @@ select_runner_cases = [
         "script.py",
         "# this is not marimo_extra related",
         "uv run",
+    ),
+    (
+        "py with marimo dep no pyrunner section defaults to edit",
+        "nb.py",
+        '# /// script\n# dependencies = [\n#   "marimo",\n# ]\n# ///\n',
+        "uvx marimo edit --sandbox",
     ),
 ]
 
@@ -61,4 +77,45 @@ def test_select_runner(tmp_path, desc, filename, content, expected):
     path = tmp_path / filename
     path.write_text(content)
     actual = _call("select_runner", str(path))
+    assert actual == expected
+
+
+# ── marimo_mode ────────────────────────────────────────────────────────────────
+
+marimo_mode_cases = [
+    ("no script block", '# dependencies = [\n#   "marimo",\n# ]', ""),
+    ("run mode", '# /// script\n# [pyrunner]\n# marimo-mode = "run"\n# ///\n', "run"),
+    (
+        "edit mode",
+        '# /// script\n# [pyrunner]\n# marimo-mode = "edit"\n# ///\n',
+        "edit",
+    ),
+    (
+        "single-quoted run mode",
+        "# /// script\n# [pyrunner]\n# marimo-mode = 'run'\n# ///\n",
+        "run",
+    ),
+    (
+        "no pyrunner section",
+        '# /// script\n# dependencies = [\n#   "marimo",\n# ]\n# ///\n',
+        "",
+    ),
+    (
+        "section without marimo-mode",
+        '# /// script\n# [pyrunner]\n# other_key = "value"\n# ///\n',
+        "",
+    ),
+    (
+        "marimo-mode after other keys",
+        '# /// script\n# [pyrunner]\n# other = "x"\n# marimo-mode = "run"\n# ///\n',
+        "run",
+    ),
+]
+
+
+@pytest.mark.parametrize("desc,content,expected", marimo_mode_cases)
+def test_marimo_mode(tmp_path, desc, content, expected):
+    path = tmp_path / "nb.py"
+    path.write_text(content)
+    actual = _call("marimo_mode", str(path))
     assert actual == expected

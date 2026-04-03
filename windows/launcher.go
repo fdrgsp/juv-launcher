@@ -1,5 +1,5 @@
 // Windows .exe launcher — opens a file picker for .ipynb/.py files, then runs
-// with uvx juv run (Jupyter), uvx marimo edit --sandbox (marimo), or uv run (plain .py).
+// with uvx juv run (Jupyter), uvx marimo run/edit --sandbox (marimo), or uv run (plain .py).
 
 package main
 
@@ -8,8 +8,45 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
+
+var marimoModeRe = regexp.MustCompile(`^#\s+marimo-mode\s*=\s*["']([a-z]+)["']`)
+
+// marimoMode reads the [pyrunner] section inside the # /// script block and
+// returns the marimo-mode value ("run", "edit", or "" if not set).
+func marimoMode(content string) string {
+	inBlock := false
+	inSection := false
+	for _, line := range strings.Split(content, "\n") {
+		line = strings.TrimRight(line, "\r")
+		if !inBlock {
+			if line == "# /// script" {
+				inBlock = true
+			}
+		} else if !inSection {
+			if line == "# ///" {
+				break
+			}
+			if strings.TrimSpace(strings.TrimPrefix(line, "#")) == "[pyrunner]" {
+				inSection = true
+			}
+		} else {
+			if line == "# ///" {
+				break
+			}
+			// Another TOML section starts — stop looking.
+			if rest := strings.TrimSpace(strings.TrimPrefix(line, "#")); strings.HasPrefix(rest, "[") {
+				break
+			}
+			if m := marimoModeRe.FindStringSubmatch(line); m != nil {
+				return m[1]
+			}
+		}
+	}
+	return ""
+}
 
 // selectRunner returns the run command for the given notebook file path.
 func selectRunner(notebookPath string) string {
@@ -21,7 +58,11 @@ func selectRunner(notebookPath string) string {
 		fmt.Fprintf(os.Stderr, "Warning: cannot read %s: %v\n", notebookPath, err)
 		return "uv run"
 	}
-	if isMarimo(string(content)) {
+	s := string(content)
+	if isMarimo(s) {
+		if marimoMode(s) == "run" {
+			return "uvx marimo run --sandbox"
+		}
 		return "uvx marimo edit --sandbox"
 	}
 	return "uv run"
@@ -72,9 +113,9 @@ func main() {
 		os.Exit(0)
 	}
 
+	runCmd := selectRunner(selected)
 	notebookDir := filepath.Dir(selected)
 	notebook := filepath.Base(selected)
-	runCmd := selectRunner(selected)
 
 	// Sanitize values for safe batch-file interpolation: double any '%' so
 	// cmd.exe doesn't treat them as variable references, and quote paths.
